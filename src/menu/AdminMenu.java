@@ -92,7 +92,11 @@ public class AdminMenu {
     while (isInvalidRoomType);
 
     Room room = new Room(roomId, roomPrice, roomType);
-    AdminResource.INSTANCE.addRoom(room);
-    System.out.println("Added room successfully");
+    if (AdminResource.INSTANCE.addRoom(room)) {
+      System.out.println("Added room successfully");
+    }
+    else {
+      System.out.println("A room with the same room number already exists");
+    }
   }
 }

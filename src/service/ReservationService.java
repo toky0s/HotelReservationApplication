@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,8 +16,8 @@ import model.RoomType;
 
 public class ReservationService {
   private static ReservationService INSTANCE;
-  private Collection<Reservation> reservations = new ArrayList<Reservation>();
-  private Collection<IRoom> rooms = new ArrayList<IRoom>();
+  private HashSet<Reservation> reservations = new HashSet<Reservation>();
+  private HashSet<IRoom> rooms = new HashSet<IRoom>();
 
   public static ReservationService getInstance() {
     if (INSTANCE == null) {
@@ -29,17 +30,8 @@ public class ReservationService {
     return rooms;
   }
 
-  private boolean isRoomExists(String roomId) {
-    return rooms.stream().anyMatch(room -> room.getRoomNumber().equals(roomId.trim()));
-  }
-
-  public void addRoom(IRoom room) {
-    if (ReservationService.INSTANCE.isRoomExists(room.getRoomNumber())) {
-      throw new IllegalStateException("Room with room ID: " + room.getRoomNumber() + " already exists");
-    }
-    else {
-      rooms.add(room);
-    }
+  public boolean addRoom(IRoom room) {
+    return rooms.add(room);
   }
 
   public IRoom getARoom(String roomId) throws IllegalArgumentException {
@@ -89,11 +81,11 @@ public class ReservationService {
 
   public Collection<IRoom> searchRecommendedRooms(Date checkInDate, Date checkOutDate) {
       Collection<IRoom> availableRooms = searchAvailableRooms(checkInDate, checkOutDate);
-  
-      Collection<IRoom> recommendedRooms = availableRooms.stream()
-          .sorted(Comparator.comparingDouble(IRoom::getRoomPrice))
-          .collect(Collectors.toList());
-  
+      List<IRoom> recommendedRooms = new ArrayList<>();
+      for (IRoom room : availableRooms) {
+          recommendedRooms.add(room);
+      }
+      recommendedRooms.sort(Comparator.comparingDouble(IRoom::getRoomPrice));
       return recommendedRooms;
   }
 

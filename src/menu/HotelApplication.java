@@ -1,5 +1,6 @@
 package menu;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
@@ -12,10 +13,10 @@ import service.CustomerService;
 import service.ReservationService;
 
 public class HotelApplication {
-  
+  private static CustomerService customerService = CustomerService.getInstance();
+  private static ReservationService reservationService = ReservationService.getInstance();
+
   public static void initializeDummryData() {
-    CustomerService customerService = CustomerService.getInstance();
-    ReservationService reservationService = ReservationService.getInstance();
 
     Customer[] customers = new Customer[] {
         new Customer("John", "Doe", "john.doe@example.com"),
@@ -46,16 +47,18 @@ public class HotelApplication {
     Arrays.stream(rooms).forEach(r -> reservationService.addRoom(r));
 
     try {
-      // john.doe@example.com
-      reservationService.reserveARoom(customers[0],rooms[0],new SimpleDateFormat("dd/MM/yyyy").parse("30/09/2024"),new SimpleDateFormat("dd/MM/yyyy").parse("02/10/2024"));
-      reservationService.reserveARoom(customers[0],rooms[6],new SimpleDateFormat("dd/MM/yyyy").parse("12/10/2024"),new SimpleDateFormat("dd/MM/yyyy").parse("22/10/2024"));
-
-      reservationService.reserveARoom(customers[1],rooms[1],new SimpleDateFormat("dd/MM/yyyy").parse("11/08/2024"),new SimpleDateFormat("dd/MM/yyyy").parse("15/08/2024"));
-      reservationService.reserveARoom(customers[2],rooms[2],new SimpleDateFormat("dd/MM/yyyy").parse("12/07/2024"),new SimpleDateFormat("dd/MM/yyyy").parse("20/07/2024"));
-      reservationService.reserveARoom(customers[3],rooms[3],new SimpleDateFormat("dd/MM/yyyy").parse("04/06/2024"),new SimpleDateFormat("dd/MM/yyyy").parse("05/07/2024"));
+      book(customers[0], rooms[0], "30/09/2024", "02/10/2024");
+      book(customers[0], rooms[6], "12/10/2024", "22/10/2024");
+      book(customers[1], rooms[1], "11/08/2024", "15/08/2024");
+      book(customers[2], rooms[2], "12/07/2024", "20/07/2024");
+      book(customers[3], rooms[3], "04/06/2024", "05/07/2024");
     } catch (Exception e) {
       System.out.println("Create dummy reservation failed: " + e.getMessage());
     }
+  }
+
+  private static void book(Customer customer, IRoom room, String checkIn, String checkOut) throws ParseException {
+    reservationService.reserveARoom(customer, room, new SimpleDateFormat("dd/MM/yyyy").parse(checkIn), new SimpleDateFormat("dd/MM/yyyy").parse(checkOut));
   }
 
   public static void main(String[] args) {

@@ -8,12 +8,11 @@ public class Customer {
 	private String firstName;
 	private String lastName;
 	private String email;
-	
+
 	public Customer(String firstName, String lastName, String email) {
 		if (isValidEmail(email)) {
 			this.email = email;
-		}
-		else {
+		} else {
 			throw new IllegalArgumentException("Invalid email address");
 		}
 		this.firstName = firstName;
@@ -25,16 +24,16 @@ public class Customer {
 	}
 
 	public String getFirstName() {
-    return firstName;
-  }
+		return firstName;
+	}
 
 	public String getLastName() {
-    return lastName;
-  }
-	
+		return lastName;
+	}
+
 	@Override
 	public String toString() {
-		return "{Customer: First name: " + firstName + ", last name: " + lastName + ", email: "+ email + "}";
+		return "{Customer: First name: " + firstName + ", last name: " + lastName + ", email: " + email + "}";
 	}
 
 	@Override
@@ -43,11 +42,21 @@ public class Customer {
 	}
 
 	public static boolean isValidEmail(String email) {
-        // Compile the regex
-        Pattern pattern = Pattern.compile(EMAIL_REGEX);
-        // Create a matcher for the input email
-        Matcher matcher = pattern.matcher(email);
-        // Return whether the email matches the regex
-        return matcher.matches();
-    }
+		// Compile the regex
+		Pattern pattern = Pattern.compile(EMAIL_REGEX);
+		// Create a matcher for the input email
+		Matcher matcher = pattern.matcher(email);
+		// Return whether the email matches the regex
+		return matcher.matches();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		Customer customer = (Customer) obj;
+		return email.equals(customer.email);
+	}
 }

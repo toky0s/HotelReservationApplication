@@ -21,8 +21,8 @@ public class AdminResource {
     rooms.forEach(r -> RESERVERY_SERVICE.addRoom(r));
   }
 
-  public void addRoom(IRoom room) {
-    RESERVERY_SERVICE.addRoom(room);
+  public boolean addRoom(IRoom room) {
+    return RESERVERY_SERVICE.addRoom(room);
   }
 
   public Collection<IRoom> getAllRooms() {

@@ -161,26 +161,70 @@ public class MainMenu {
     } while (isInvalidCheckOutDate);
 
     Collection<IRoom> rooms = reservationService.searchAvailableRooms(checkInDate, checkOutDate);
+    if (rooms.isEmpty()) {
+      searchRecommnedRooms(checkInDate, checkOutDate);
+    }
+    else {
+      selecteAvailableRoom(rooms, scanner, checkInDate, checkOutDate);
+    }
+  }
+
+  /**
+   * Search for recommended rooms. If there are no available rooms for the customer's date range, a search will
+   * be performed that displays recommended rooms on alternative dates. The recommended room search will
+   * add seven days to the original check-in and check-out dates to see if the hotel has any availabilities and then
+   * display the recommended rooms/dates to the customer.
+   * 
+   * Example: Ifthe customers date range search is 1/1/2020 - 1/5/2020 and all rooms are booked, the system
+   * wilf search again for recommended rooms using the date range 1/8/2020 - 1/12/2020 If there are no
+   * recommended rooms, the system will not return any rooms.
+  */
+  private static void searchRecommnedRooms(Date originalCheckInDate, Date originalCheckOutDate)  {
+    Date alternativeCheckInDate = new Date(originalCheckInDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    Date alternativeCheckOutDate = new Date(originalCheckOutDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+    Collection<IRoom> alternativeRooms = reservationService.searchAvailableRooms(alternativeCheckInDate, alternativeCheckOutDate);
+  
+    if (alternativeRooms.isEmpty()) {
+      System.out.println("Out of rooms");
+    }
+    else {
+      System.out.println("Recommended rooms for alternative dates:");
+      alternativeRooms.forEach(System.out::println);
+      System.out.println("Alternative check-in date: " + convertDateToString(alternativeCheckInDate));
+      System.out.println("Alternative check-out date: " + convertDateToString(alternativeCheckOutDate));
+    }
+  }
+
+  private static void selecteAvailableRoom(Collection<IRoom> rooms, Scanner scanner, Date checkInDate, Date checkOutDate){
     System.out.println("Available rooms:");
     rooms.forEach(System.out::println);
 
     IRoom selectedRoom = null;
     boolean isInvalidRoom = false;
+
     do {
       if (isInvalidRoom) {
-        System.out.println("Please enter a valid room number");
+        System.out.println("Please enter a valid room number!");
       }
 
       System.out.print("Enter room number to reserve: ");
       String roomNumber = scanner.nextLine();
       try {
-        selectedRoom = reservationService.getARoom(roomNumber);
-        isInvalidRoom = false;
+        // Your room number has to be included in the rooms.
+        boolean isRoomNumberBelongToList = rooms.stream().anyMatch(r -> r.getRoomNumber().equals(roomNumber.trim()));
+        if (isRoomNumberBelongToList) {
+          selectedRoom = reservationService.getARoom(roomNumber);
+          isInvalidRoom = false;
+        }
+        else {
+          isInvalidRoom = true;
+        }
       } catch (IllegalArgumentException ex) {
         isInvalidRoom = true;
         System.out.println(ex.getMessage());
       }
-    } while (isInvalidCheckOutDate);
+    } while (isInvalidRoom);
 
     boolean canBookThisRoom = reservationService.canBookThisRoom(selectedRoom.getRoomNumber(),
         currentCustomer.getEmail());
@@ -192,7 +236,7 @@ public class MainMenu {
     }
   }
 
-  public static Date convertStringToDate(String dateString) {
+  private static Date convertStringToDate(String dateString) {
     SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
     try {
       return formatter.parse(dateString);
@@ -200,5 +244,10 @@ public class MainMenu {
       System.out.println("Date format is invalid.");
       return null;
     }
+  }
+
+  private static String convertDateToString(Date date) {
+    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+    return formatter.format(date);
   }
 }
