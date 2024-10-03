@@ -2,92 +2,142 @@ package menu;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Scanner;
 
 import model.Customer;
-import model.FreeRoom;
 import model.IRoom;
 import model.Reservation;
-import model.Room;
-import model.RoomType;
 import service.CustomerService;
 import service.ReservationService;
 
 public class MainMenu {
   public static MainMenu INSTANCE = new MainMenu();
-
-  public void initializeDummryData() {
-    Customer[] customers = new Customer[] {
-        new Customer("John", "Doe", "john.doe@example.com"),
-        new Customer("Jane", "Smith", "jane.smith@example.com"),
-        new Customer("Alice", "Johnson", "alice.johnson@example.com"),
-        new Customer("Bob", "Williams", "bob.williams@example.com"),
-        new Customer("Emily", "Brown", "emily.brown@example.com"),
-    };
-    Arrays.stream(customers).forEach(c -> CustomerService.INSTANCE.addCustomer(c));
-
-    IRoom[] rooms = {
-        new Room("101", 50.0, RoomType.SINGLE),
-        new Room("102", 75.0, RoomType.DOUBLE),
-        new Room("103", 50.0, RoomType.SINGLE),
-        new Room("104", 75.0, RoomType.DOUBLE),
-        new Room("105", 50.0, RoomType.SINGLE),
-        new Room("106", 75.0, RoomType.DOUBLE),
-        new Room("107", 50.0, RoomType.SINGLE),
-        new Room("108", 75.0, RoomType.DOUBLE),
-        new Room("109", 50.0, RoomType.SINGLE),
-        new Room("110", 75.0, RoomType.DOUBLE),
-        new FreeRoom("201", RoomType.SINGLE),
-        new FreeRoom("202", RoomType.DOUBLE),
-        new FreeRoom("203", RoomType.SINGLE),
-        new FreeRoom("204", RoomType.DOUBLE),
-        new FreeRoom("205", RoomType.SINGLE),
-    };
-
-    Arrays.stream(rooms).forEach(r -> ReservationService.INSTANCE.addRoom(r));
-  }
+  private static Customer currentCustomer;
+  private static CustomerService customerService = CustomerService.getInstance();
+  private static ReservationService reservationService = ReservationService.getInstance();
 
   public void displayMenu() {
 
     do {
       System.out.println("1. Find and reserve a room");
       System.out.println("2. See my reservations");
-      System.out.println("2. Create an account");
-      System.out.println("3. Admin");
-      System.out.println("4. Exit");
+      System.out.println("3. Create an account");
+      System.out.println("4. Admin");
+      System.out.println("5. Exit");
       System.out.print("Enter your choice: ");
 
       Scanner scanner = new Scanner(System.in);
       String data = scanner.nextLine();
 
-      int choice = Integer.parseInt(data);
-      switch (choice) {
-        case 1:
-          System.out.print("\033\143");
-          findRoom(scanner);
-          break;
-        case 2:
-          System.out.println("Menu 2");
-          break;
-        case 3:
-          System.out.println("Menu 3");
-          break;
-        case 4:
-          scanner.close();
-          return;
-        default:
-          System.out.println("Invalid choice. Please try again.");
+      try {
+        int choice = Integer.parseInt(data);
+        switch (choice) {
+          case 1:
+            System.out.print("\033\143");
+            System.out.println("FIND AND RESERVE A ROOM");
+            findRoom(scanner);
+            break;
+          case 2:
+            System.out.print("\033\143");
+            System.out.println("SEE MY RESERVATIONS");
+            seeMyReservations(scanner);
+            break;
+          case 3:
+            System.out.print("\033\143");
+            System.out.println("CREATE AN ACCOUNT");
+            createAnAccount(scanner);
+            break;
+          case 4:
+            System.out.print("\033\143");
+            AdminMenu.INSTANCE.displayMenu(scanner);
+            break;
+          case 5:
+            System.exit(0);
+          default:
+            System.out.println("Invalid choice. Please try again.");
+        }
+      } catch (NumberFormatException ex) {
+        System.out.println("Invalid choice. Please try again.");
+        continue;
       }
+
     } while (true);
   }
 
+  public void createAnAccount(Scanner scanner) {
+    System.out.print("Enter first name: ");
+    String firstName = scanner.nextLine();
+    System.out.print("Enter last name: ");
+    String lastName = scanner.nextLine();
+    System.out.print("Enter email: ");
+    String email = scanner.nextLine();
+    try {
+      CustomerService.getInstance().addCustomer(email, firstName, lastName);
+      System.out.println("Create an account successfully");
+      currentCustomer = customerService.getCustomer(email);
+      System.out.println(
+          "Welcome " + currentCustomer.getFirstName() + " " + currentCustomer.getLastName() + " to Hotel Application");
+    } catch (IllegalArgumentException ex) {
+      System.out.println(ex.getMessage());
+    }
+  }
+
+  public void seeMyReservations(Scanner scanner) {
+    if (currentCustomer == null) {
+
+      boolean isInvalidCustomer = false;
+      do {
+        if (isInvalidCustomer) {
+          System.out.println("Please enter a valid customer");
+        }
+        System.out.print("Enter customer email: ");
+        String customerEmail = scanner.nextLine();
+        try {
+          currentCustomer = customerService.getCustomer(customerEmail);
+          System.out.println(
+              "Welcome " + currentCustomer.getFirstName() + " " + currentCustomer.getLastName()
+                  + " to Hotel Application");
+          isInvalidCustomer = false;
+        } catch (IllegalArgumentException ex) {
+          isInvalidCustomer = true;
+          System.out.println(ex.getMessage());
+        }
+      } while (isInvalidCustomer);
+    }
+    System.out.println("Your reservations:");
+    Collection<Reservation> reservations = reservationService.getCustomersReservations(currentCustomer);
+    reservations.forEach(System.out::println);
+  }
+
   public static void findRoom(Scanner scanner) {
+    System.out.println("1. Find and reserve a room");
+
+    // Enter customer
+    if (currentCustomer == null) {
+      boolean isInvalidCustomer = false;
+      do {
+        if (isInvalidCustomer) {
+          System.out.println("Please enter a valid customer");
+        }
+        System.out.print("Enter customer email: ");
+        String customerEmail = scanner.nextLine();
+        try {
+          currentCustomer = customerService.getCustomer(customerEmail);
+          System.out.println(
+              "Welcome " + currentCustomer.getFirstName() + " " + currentCustomer.getLastName()
+                  + " to Hotel Application");
+          isInvalidCustomer = false;
+        } catch (IllegalArgumentException ex) {
+          isInvalidCustomer = true;
+          System.out.println(ex.getMessage());
+        }
+      } while (isInvalidCustomer);
+    }
+
     Date checkInDate = null;
-    Date checkOutDate = null;
     boolean isInvalidCheckInDate = false;
-    boolean isInvalidCheckOutDate = false;
     do {
       if (isInvalidCheckInDate) {
         System.out.println("Please enter a valid date");
@@ -98,6 +148,8 @@ public class MainMenu {
       isInvalidCheckInDate = checkInDate == null;
     } while (isInvalidCheckInDate);
 
+    Date checkOutDate = null;
+    boolean isInvalidCheckOutDate = false;
     do {
       if (isInvalidCheckOutDate) {
         System.out.println("Please enter a valid date");
@@ -108,7 +160,36 @@ public class MainMenu {
       isInvalidCheckOutDate = checkOutDate == null;
     } while (isInvalidCheckOutDate);
 
-    ReservationService.INSTANCE.findRooms(checkInDate, checkOutDate);
+    Collection<IRoom> rooms = reservationService.searchAvailableRooms(checkInDate, checkOutDate);
+    System.out.println("Available rooms:");
+    rooms.forEach(System.out::println);
+
+    IRoom selectedRoom = null;
+    boolean isInvalidRoom = false;
+    do {
+      if (isInvalidRoom) {
+        System.out.println("Please enter a valid room number");
+      }
+
+      System.out.print("Enter room number to reserve: ");
+      String roomNumber = scanner.nextLine();
+      try {
+        selectedRoom = reservationService.getARoom(roomNumber);
+        isInvalidRoom = false;
+      } catch (IllegalArgumentException ex) {
+        isInvalidRoom = true;
+        System.out.println(ex.getMessage());
+      }
+    } while (isInvalidCheckOutDate);
+
+    boolean canBookThisRoom = reservationService.canBookThisRoom(selectedRoom.getRoomNumber(),
+        currentCustomer.getEmail());
+    if (canBookThisRoom) {
+      reservationService.reserveARoom(currentCustomer, selectedRoom, checkInDate, checkOutDate);
+      System.out.println("Room reserved successfully!");
+    } else {
+      System.out.println("A user should not be able to book a single room twice for the same date range.");
+    }
   }
 
   public static Date convertStringToDate(String dateString) {

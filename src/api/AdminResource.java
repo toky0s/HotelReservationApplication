@@ -10,15 +10,19 @@ import service.ReservationService;
 
 public class AdminResource {
   public static final AdminResource INSTANCE = new AdminResource();
-  private static final CustomerService CUSTOMER_SERVICE = CustomerService.INSTANCE;
-  private static final ReservationService RESERVERY_SERVICE = ReservationService.INSTANCE;
+  private static final CustomerService CUSTOMER_SERVICE = CustomerService.getInstance();
+  private static final ReservationService RESERVERY_SERVICE = ReservationService.getInstance();
 
   public Customer getCustomer(String email) {
     return CUSTOMER_SERVICE.getCustomer(email);
   }
-  
-  public void addRoom(List<IRoom> rooms) {
+
+  public void addRooms(List<IRoom> rooms) {
     rooms.forEach(r -> RESERVERY_SERVICE.addRoom(r));
+  }
+
+  public void addRoom(IRoom room) {
+    RESERVERY_SERVICE.addRoom(room);
   }
 
   public Collection<IRoom> getAllRooms() {
@@ -28,7 +32,16 @@ public class AdminResource {
   public Collection<Customer> getAllCustomers() {
     return CUSTOMER_SERVICE.getAllCustomers();
   }
+
   public void displayAllReservations() {
     RESERVERY_SERVICE.printAllReservation();
+  }
+
+  public void displayAllRooms() {
+    RESERVERY_SERVICE.getAllRooms().forEach(System.out::println);
+  }
+
+  public void displayAllCustomers() {
+    CUSTOMER_SERVICE.getAllCustomers().forEach(System.out::println);
   }
 }

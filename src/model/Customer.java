@@ -23,6 +23,14 @@ public class Customer {
 	public String getEmail() {
 		return email;
 	}
+
+	public String getFirstName() {
+    return firstName;
+  }
+
+	public String getLastName() {
+    return lastName;
+  }
 	
 	@Override
 	public String toString() {
